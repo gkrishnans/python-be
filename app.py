@@ -1,12 +1,13 @@
 
 #Imports
 from os import pathsep
+import re
 import firebase_admin
 import pyrebase
 import json
 from firebase_admin import credentials, auth
 from flask import Flask, request,jsonify
-from models.insert import create_user
+from models.insert import create_group, create_user
 from models.select import getData
 from models.update import update_user
 #App configuration
@@ -37,7 +38,6 @@ def signer():
         return jsonify({"message":message,'newUser':newUser}), 201
     except Exception as error:
         return jsonify({'debug_message':str(error)}), 424
-
 
 def getAllUsers():
     users = []
@@ -77,8 +77,6 @@ def createUser():
     except Exception as error:
         return jsonify({'debug_message':str(error),"message":"Error occured in creating user"}), 424
 
-
-
 #update the user profile
 @app.route('/updateUser',methods = ['post'])
 def updateUser():
@@ -98,6 +96,46 @@ def updateUser():
     except Exception as error:
         return jsonify({'debug_message':str(error),"message":"Error occured in updating user"}), 424
 
+# {
+# name:'Qa group',
+# startDate:'10-12-2021',
+# endDate:'20-12-2021'
+# }
+
+
+
+#creating group
+@app.route('/createGroup',methods = ['post'])
+def createGroup():
+    try:
+        request_data = request.get_json()
+        groupName = request_data['groupName']
+        startDate = request_data['startDate']
+        endDate = request_data['endDate']
+        creatorName = request_data['creatorName']
+        participants = request_data['participants']
+        data = {
+            "groupName" : groupName,
+            "startDate" : startDate,
+            "endDate" : endDate,
+            "groupID":"groupid",
+            "participants":"getParticipantsDetails(participants)",
+            "createdBy":creatorName
+        }
+        create_group(data)
+
+        return jsonify({'message':"group created successfully"}), 201
+    except Exception as error:
+        return jsonify({'debug_message':str(error),"message":"Error occured in creating group"}), 424
+
+def getParticipantsDetails(participants):
+    participantsDetails = []
+    for participant in participants:
+        data = {
+            participant:"getUserInfo"
+        }
+        participantsDetails.append(data)
+    return participantsDetails
 
 if __name__ == '__main__':
     app.run(debug=True)
